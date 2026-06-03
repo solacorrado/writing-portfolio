@@ -1,0 +1,43 @@
+import { createClient } from "@supabase/supabase-js";
+import CanvasWrapper from "./CanvasWrapper";
+
+export const dynamic = "force-dynamic";
+
+const supabaseUrl = "https://tecqzfbtwnesrzgoerxn.supabase.co";
+const supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRlY3F6ZmJ0d25lc3J6Z29lcnhuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0NDQ5NjYsImV4cCI6MjA5NjAyMDk2Nn0.-CdU3nvGKkqpLcBR3HJ4h2-8VWcJvN96Cp3S1upMCr0";
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+interface WritingPiece {
+  id: number;
+  title: string;
+  content: string;
+  quote: string;
+  image_url: string; 
+  x_coord: number;
+  y_coord: number;
+  date_published: string; 
+}
+
+export default async function Home() {
+  const { data: pieces } = await supabase
+    .from("writing_pieces")
+    .select("id, title, content, quote, image_url, x_coord, y_coord, date_published");
+
+  return (
+    <main className="relative w-screen h-screen overflow-hidden bg-slate-950 select-none">
+      
+      <div className="absolute top-12 left-1/2 -translate-x-1/2 z-40 text-center pointer-events-none">
+        <h1 className="text-4xl md:text-5xl font-serif tracking-widest text-slate-200 uppercase drop-shadow-md">
+          The Anatomy of Becoming
+        </h1>
+        <p className="text-xs tracking-widest text-slate-500 mt-2 font-mono uppercase">
+          [ Use Mouse Wheel to Zoom • Click & Drag to Explore • Click Card to Read ]
+        </p>
+      </div>
+
+      <CanvasWrapper initialPieces={pieces || []} />
+      
+    </main>
+  );
+}
