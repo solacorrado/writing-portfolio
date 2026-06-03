@@ -94,7 +94,7 @@ export default function CanvasWrapper({ initialPieces }: { initialPieces: Writin
                       (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1516979187457-637abb4f9353?q=80&w=500";
                     }}
                   />
-                  <div className="absolute inset-0 p-5 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-slate-950/90 backdrop-blur-xs">
+                  <div className="absolute inset-0 p-5 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-slate-950/90 backdrop-blur-sm">
                     <p className="text-xs text-slate-200 italic text-center font-serif leading-relaxed">
                       "{piece.quote || 'Click to step inside...'}"
                     </p>
@@ -102,7 +102,7 @@ export default function CanvasWrapper({ initialPieces }: { initialPieces: Writin
                   </div>
                 </div>
 
-                <h2 className="text-center font-serif text-sm tracking-wide text-slate-400 group-hover:text-slate-100 transition-colors duration-300 mt-3 w-52 px-2 text-wrap line-clamp-2">
+                <h2 className="text-center font-serif text-sm tracking-wide text-slate-400 group-hover:text-slate-100 transition-colors duration-300 mt-3 w-52 px-2 break-words line-clamp-2">
                   {piece.title}
                 </h2>
               </div>
