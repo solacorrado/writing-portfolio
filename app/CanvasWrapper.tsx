@@ -2,17 +2,7 @@
 
 import { useState } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
-
-interface WritingPiece {
-  id: number;
-  title: string;
-  content: string;
-  quote: string;
-  image_url: string;
-  x_coord: number;
-  y_coord: number;
-  date_published: string;
-}
+import { WritingPiece } from "./page";
 
 export default function CanvasWrapper({ initialPieces }: { initialPieces: WritingPiece[] }) {
   const [selectedPiece, setSelectedPiece] = useState<WritingPiece | null>(null);
@@ -33,6 +23,14 @@ export default function CanvasWrapper({ initialPieces }: { initialPieces: Writin
     return `https://tecqzfbtwnesrzgoerxn.supabase.co/storage/v1/object/public/portfolio_images/${fileName}`;
   };
 
+  // Group essays by their theme so we can draw constellation strings within thematic clusters
+  const piecesByTheme = initialPieces.reduce((acc, piece) => {
+    const theme = piece.theme_label || "Uncategorized";
+    if (!acc[theme]) acc[theme] = [];
+    acc[theme].push(piece);
+    return acc;
+  }, {} as Record<string, WritingPiece[]>);
+
   return (
     <>
       <TransformWrapper 
@@ -52,28 +50,27 @@ export default function CanvasWrapper({ initialPieces }: { initialPieces: Writin
             }}
           >
             
-            {/* THE CONSTELLATION LAYER */}
-            {/* Absolute vector canvas behind the text cards drawing relational links */}
+            {/* THE CLUSTERED CONSTELLATION LAYER */}
             <svg className="absolute inset-0 w-full h-full pointer-events-none z-0 overflow-visible">
-              {initialPieces.map((piece, index) => {
-                // To keep the constellation natural, we connect each piece to the next one in your array sequence.
-                // The final item links back to the first item to close the universe pattern loop gracefully.
-                const nextPiece = initialPieces[(index + 1) % initialPieces.length];
-                
-                if (!nextPiece) return null;
+              {Object.entries(piecesByTheme).map(([theme, clusterPieces]) => {
+                return clusterPieces.map((piece, index) => {
+                  // Connects the piece only to the next piece INSIDE its specific cluster
+                  if (clusterPieces.length <= 1) return null;
+                  const nextPiece = clusterPieces[(index + 1) % clusterPieces.length];
 
-                return (
-                  <line
-                    key={`line-${piece.id}`}
-                    x1={piece.x_coord}
-                    y1={piece.y_coord}
-                    x2={nextPiece.x_coord}
-                    y2={nextPiece.y_coord}
-                    className="stroke-slate-500/40" // Clean subtle slate-white overlay hue
-                    strokeWidth="1.24"
-                    strokeDasharray="4 8" // Turns it into an elegant stellar dashed link. Remove this line if you prefer solid strings!
-                  />
-                );
+                  return (
+                    <line
+                      key={`line-${piece.id}-${nextPiece.id}`}
+                      x1={piece.x}
+                      y1={piece.y}
+                      x2={nextPiece.x}
+                      y2={nextPiece.y}
+                      className="stroke-slate-500/30"
+                      strokeWidth="1.2"
+                      strokeDasharray="4 6"
+                    />
+                  );
+                });
               })}
             </svg>
 
@@ -82,9 +79,16 @@ export default function CanvasWrapper({ initialPieces }: { initialPieces: Writin
               <div 
                 key={piece.id}
                 onClick={() => setSelectedPiece(piece)}
-                className="absolute group transition-transform duration-300 ease-out hover:z-30 cursor-pointer"
-                style={{ left: `${piece.x_coord}px`, top: `${piece.y_coord}px`, transform: "translate(-50%, -50%)" }}
+                className="absolute group transition-transform duration-500 ease-out hover:z-30 cursor-pointer"
+                style={{ left: `${piece.x}px`, top: `${piece.y}px`, transform: "translate(-50%, -50%)" }}
               >
+                {/* Visual Label for Themes */}
+                <div className="text-center mb-2">
+                  <span className="text-[9px] font-mono tracking-[0.2em] text-slate-500 uppercase bg-slate-900/80 px-2 py-0.5 rounded border border-slate-800/40">
+                    {piece.theme_label || "Thinking"}
+                  </span>
+                </div>
+
                 <div className="relative w-52 h-72 rounded-lg bg-slate-900 border border-slate-800/60 shadow-2xl overflow-hidden group-hover:border-slate-400/50 transition-all duration-300">
                   <img 
                     src={getImageUrl(piece.image_url)} 
@@ -133,6 +137,11 @@ export default function CanvasWrapper({ initialPieces }: { initialPieces: Writin
           </button>
           
           <article className="prose prose-invert max-w-none flex-1">
+            <div className="mb-2">
+              <span className="text-xs font-mono text-indigo-400 uppercase tracking-widest">
+                Theme // {selectedPiece?.theme_label}
+              </span>
+            </div>
             <h1 className="text-3xl md:text-4xl font-serif font-light text-slate-100 mb-1 leading-tight">
               {selectedPiece?.title}
             </h1>
